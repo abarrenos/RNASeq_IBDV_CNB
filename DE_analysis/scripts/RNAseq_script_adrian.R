@@ -2910,17 +2910,19 @@ analysePlotDESeq <- function(	#results,
 		cat("\n\tSaving final results ...")		
 		saveRDS(res.list, file=paste(out.dir, "/DESeq2/", out.file.base, "_final_result_list.rds", sep=''))
 		save(res.list, file=paste(out.dir, "/DESeq2/", out.file.base, "_final_result_list.RData", sep=''))
-
-	} else {
-	
-		res.list <- load(paste(out.dir, "/DESeq2/", out.file.base, "_final_result_list.RData", sep = ""))
-	}
 		
-	return(res.list)
-
 		cat("\n =========================== \n")
 		cat(  "| A N A L Y S I S   D O N E |\n")
 		cat(  " =========================== \n")
+        
+	} else {
+    
+		cat("\n\t Loading from file ", basename(out.file.base), "_final_result_list.rds", "\n", sep = "")
+    	res.list <- readRDS(paste(out.dir, "/DESeq2/", out.file.base, "_final_result_list.rds", sep = ""))
+		#load(paste(out.dir, "/DESeq2/", out.file.base, "_final_result_list.RData", sep = ""))
+		cat("\n\t DONE! \n")
+        }
+        return(res.list)
 }
 
 #############################################################################################
@@ -2983,7 +2985,7 @@ if ( ! file.exists(paste(out.dir, "DESeq2/dds.Sample.rds", sep='/'))) {
     saveRDS(dds.sample, file=paste(out.dir, "DESeq2/dds.Sample.rds", sep='/'))
 } else {
     dds.sample <- readRDS(file=paste(out.dir, "DESeq2/dds.Sample.rds", sep='/'))
-	#dds.sample <- load(file=paste(out.dir, "DESeq2/dds.Sample.RData", sep='/'))
+	#load(file=paste(out.dir, "DESeq2/dds.Sample.RData", sep='/'))
 }
 
 cat("DESeq2 analysis produced the following fit")
@@ -2993,23 +2995,25 @@ print(resultsNames(dds.sample))
 
 dds <- dds.sample
 comparisons <- resultsNames(dds)[2:length(resultsNames(dds))]
+dds.sample.results <- list()
 
-for (comparison in comparisons){
-	if (comparison == "Intercept") next
 #for (comp in levels(sampleData$Sample)){
 #	for (j in levels(sampleData$Sample)){
 #		if (i == j) next
-		cat("\n                                    ")						
+
+for (comparison in comparisons){
+	if (comparison == "Intercept") next
+		
+        cat("\n                                    ")						
 		cat("\nComputing DGE:",	  comparison,	"\n")
 		cat(  "==================================\n")
-		#contrast <- c("Sample", "DF1.PC", "DF1")
+
 		contrast <- str_split(comparison, pattern = "_")[[1]][c(1, 2, 4)]	#Ex: c("Sample", "DF1.PC", "DF1")
 		#print(contrast)
 
-		#out.file.base <- paste("dds.Sample.DF1_PC.vs.DF1")
-		out.file.base <- paste("dds", comparison, sep = ".")
+		out.file.base <- paste("dds", comparison, sep = ".")	#Ex: "dds.Sample.DF1_PC.vs.DF1"
 
-		dds.sample.results <- analysePlotDESeq(
+		dds.sample.results[[comparison]] <- analysePlotDESeq(
 							dds = dds,
 							contrast = contrast,
 							filterFun = ihw,
@@ -3022,7 +3026,6 @@ for (comparison in comparisons){
 							save = TRUE,
 							out.file.base = out.file.base,
 							out.dir = out.dir)
-#	}
 }
 
 	########################################################
@@ -3044,9 +3047,10 @@ if ( ! file.exists(paste(out.dir, "DESeq2/dds.CellStatus.rds", sep='/'))) {
     # -------------------
     save(dds.cell, file=paste(out.dir, "DESeq2/dds.CellStatus.RData", sep='/'))
     saveRDS(dds.cell, file=paste(out.dir, "DESeq2/dds.CellStatus.rds", sep='/'))
+
 } else {
     dds.cell <- readRDS(file=paste(out.dir, "DESeq2/dds.CellStatus.rds", sep='/'))
-	#dds.cell <- load(file=paste(out.dir, "DESeq2/dds.CellStatus.RData", sep='/'))
+	#load(file=paste(out.dir, "DESeq2/dds.CellStatus.RData", sep='/'))
 }
 
 cat("DESeq2 analysis produced the following fit")
@@ -3056,6 +3060,7 @@ print(resultsNames(dds.cell))
 
 dds <- dds.cell
 comparisons <- resultsNames(dds)[2:length(resultsNames(dds))]
+dds.cell.results <- list()
 
 for (comparison in comparisons){
 	if (comparison == "Intercept") next
@@ -3067,7 +3072,7 @@ for (comparison in comparisons){
 
 		out.file.base <- paste("dds", comparison, sep = ".")
 
-		dds.cell.results <- analysePlotDESeq(
+		dds.cell.results[[comparison]] <- analysePlotDESeq(
 							dds = dds,
 							contrast = contrast,
 							filterFun = ihw,
@@ -3104,7 +3109,7 @@ if ( ! file.exists(paste(out.dir, "DESeq2/dds.VirusStatus.rds", sep='/'))) {
     saveRDS(dds.virus, file=paste(out.dir, "DESeq2/dds.VirusStatus.rds", sep='/'))
 } else {
     dds.virus <- readRDS(file=paste(out.dir, "DESeq2/dds.VirusStatus.rds", sep='/'))
-	#dds.virus <- load(file=paste(out.dir, "DESeq2/dds.VirusStatus.RData", sep='/'))
+	#load(file=paste(out.dir, "DESeq2/dds.VirusStatus.RData", sep='/'))
 }
 
 cat("DESeq2 analysis produced the following fit")
@@ -3114,6 +3119,7 @@ print(resultsNames(dds.virus))
 
 dds <- dds.virus
 comparisons <- resultsNames(dds)[2:length(resultsNames(dds))]
+dds.virus.results <- list()
 
 for (comparison in comparisons){
 	if (comparison == "Intercept") next
@@ -3125,7 +3131,7 @@ for (comparison in comparisons){
 
 		out.file.base <- paste("dds", comparison, sep = ".")
 
-		dds.virus.results <- analysePlotDESeq(
+		dds.virus.results[[comparison]] <- analysePlotDESeq(
 							dds = dds,
 							contrast = contrast,
 							filterFun = ihw,
@@ -3159,7 +3165,7 @@ if ( ! file.exists(paste(out.dir, "DESeq2/dds.FullCompare.rds", sep='/'))) {
     saveRDS(dds.both, file=paste(out.dir, "DESeq2/dds.FullCompare.rds", sep='/'))
 } else {
     dds.both <- readRDS(file=paste(out.dir, "DESeq2/dds.FullCompare.rds", sep='/'))
-	#dds.both <- load(file=paste(out.dir, DESeq2/dds.FullCompare.RData", sep='/'))
+	#load(file=paste(out.dir, DESeq2/dds.FullCompare.RData", sep='/'))
 }
 
 cat("DESeq2 analysis produced the following fit")
@@ -3170,6 +3176,7 @@ print(resultsNames(dds.both))
 
 dds <- dds.both
 comparisons <- resultsNames(dds)[2:length(resultsNames(dds))]
+dds.both.results <- list()
 
 for (comparison in comparisons){
 	if (comparison == "Intercept") next
@@ -3181,7 +3188,7 @@ for (comparison in comparisons){
 
 		out.file.base <- paste("dds", comparison, sep = ".")
 
-		dds.both.results <- analysePlotDESeq(
+		dds.both.results[[comparison]] <- analysePlotDESeq(
 							dds = dds,
 							contrast = contrast,
 							filterFun = ihw,
@@ -3232,7 +3239,7 @@ if ( ! is.null(org.db) ) {
 
 }
 
-
+################################################################################################
 
 # Generating this takes long. We should save it and load from file
 # when we run the script
@@ -3265,14 +3272,22 @@ print(names(ds.data))
 
 
 
+#############################################################################################
+######################## --- GENE SET ENRICHMENT ANALYSIS --- ###############################
+#############################################################################################
+
+
+ds.data <- dds.sample.results
+cmp.data <- ds.data[["Sample_DF1.PC_vs_DF1"]]
+ann.shrunk.lfc <- cmp.data[["shrunk.annot"]]
 
 # -------------------------------
 # Do Gene Set Enrichment Analysis
 # -------------------------------
 
 GO_fgsea <- function (ann.shrunk.lfc, 
-		      max.size=250,
-                      out.dir=paste(out.dir, 'go_fgsea', sep='/'), 
+		      		  max.size=250,
+                      out.dir=paste(out.dir, 'DESeq2/GO_fgsea', sep='/'), 
                       out.name='GO_fgsea',
                       use.description=TRUE,
                       top.n=20,
@@ -3284,7 +3299,7 @@ GO_fgsea <- function (ann.shrunk.lfc,
     #	Here we exclude genes for which we have no EntrezID and
     #	use shrunk LFC values
 #    gseaDat <- filter(ann.shrunk.lfc, !is.na(ENTREZID))
-    gseaDat <- filter(ann.shrunk.lfc, !is.na(GENEID))
+    gseaDat <- filter(as.data.frame(ann.shrunk.lfc), !is.na(GENEID))
 
     ranks <- gseaDat$lfc
     #names(ranks) <- gseaDat$ENTREZID
@@ -3435,18 +3450,18 @@ GO_fgsea <- function (ann.shrunk.lfc,
 
 
 GO_KEGG_clusterProfiler <- function(ann.shrunk.lfc, 
-		      max.size=250,
-                      out.dir=paste(out.dir, 'go_fgsea', sep='/'), 
+		      			max.size=250,
+                      out.dir=paste(out.dir, "DESeq2/GO_fgsea", sep='/'), 
                       out.name='GO_fgsea',
                       use.description=TRUE,
-                      OrgDb = org.Cjaponica.eg.db,
-                      kegg_organism = "cjo",	# (cjo = coturnix japonica)
-                                             # (gga = gallus gallus)
+                      OrgDb = "org.Gg.eg.db",
+                      kegg_organism = "gga",	# (cjo = coturnix japonica)
+                                             	# (gga = gallus gallus)
                       top.n=10,
                       top.biblio=5,
                       verbose=FALSE) {
         
-    gseaDat <- filter(ann.shrunk.lfc, !is.na(ENTREZID))
+    gseaDat <- filter(as.data.frame(ann.shrunk.lfc), !is.na(ENTREZID))
     ranks <- gseaDat$lfc
     names(ranks) <- gseaDat$ENTREZID
     ranks<-na.omit(ranks)

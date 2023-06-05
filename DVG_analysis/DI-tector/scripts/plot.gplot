@@ -1,0 +1,4 @@
+set datafile separator "\t"
+plot "R1counts_AA.txt" using 3:7, "R1counts_AA.txt" using 4:7
+plot "R1counts_BB.txt" using 3:7, "R1counts_BB.txt" using 4:7
+
